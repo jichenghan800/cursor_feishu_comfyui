@@ -13,6 +13,23 @@ client = Client.builder().app_id(APP_ID).app_secret(APP_SECRET).build()
 async def ping():
     return {"status": "ok", "message": "Server is running"}
 
+@app.post("/")
+async def root_post(request: Request):
+    body = await request.body()
+    headers = dict(request.headers)
+    
+    try:
+        event = await client.event.verify(headers, body)
+        # 根据事件类型处理
+        if event.header.event_type == "im.message.receive_v1":
+            await handle_card_event(event)
+        else:
+            await handle_event(event)
+        return {"status": "ok"}
+    except Exception as e:
+        print(f"Error processing root event: {e}")
+        return Response(status_code=400, content=str(e))
+
 @app.post("/webhook/card")
 async def webhook_card(request: Request):
     # 立即返回 200 状态码
