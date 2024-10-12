@@ -58,6 +58,9 @@ def handle_message(event):
 
     logging.info(f"Chat ID: {chat_id}")
     logging.info(f"Message content: {content}")
+    
+    # 打印客户端输入的内容
+    print(f"Client input: {content}")
 
     send_message(chat_id, "正在生成图片，请稍候...")
 
