@@ -1,13 +1,16 @@
 import asyncio
 from fastapi import FastAPI, Request, HTTPException
 from feishu_bot import handle_card_event, handle_event, handle_callback
-from config import WEBHOOK_URL, EVENT_WEBHOOK_URL, CALLBACK_WEBHOOK_URL, APP_ID, APP_SECRET, SERVER_HOST, SERVER_PORT
-from lark_oapi import Client
+from config import WEBHOOK_URL, APP_ID, APP_SECRET, SERVER_HOST, SERVER_PORT
+from lark_oapi import Client, EventDispatcher, EventHandler
 
 app = FastAPI()
 
 # 创建 Lark 客户端
 client = Client.builder().app_id(APP_ID).app_secret(APP_SECRET).build()
+
+# 创建事件分发器
+event_dispatcher = EventDispatcher(APP_ID, APP_SECRET)
 
 @app.post(WEBHOOK_URL)
 async def webhook(request: Request):
@@ -16,7 +19,7 @@ async def webhook(request: Request):
     
     try:
         # 验证请求
-        event = await client.event.verify(headers, body)
+        event = event_dispatcher.parse(headers, body)
         
         # 处理事件
         if event.header.event_type == "im.message.receive_v1":

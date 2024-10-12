@@ -8,7 +8,7 @@ APP_ID = os.getenv("APP_ID")
 APP_SECRET = os.getenv("APP_SECRET")
 
 # Webhook配置
-WEBHOOK_URL = "/webhook/card"
+WEBHOOK_URL = "/webhook/event"
 
 # ComfyUI配置
 COMFYUI_API_URL = os.getenv("COMFYUI_API_URL", "http://localhost:8188")
@@ -16,9 +16,6 @@ COMFYUI_API_URL = os.getenv("COMFYUI_API_URL", "http://localhost:8188")
 # 加密策略
 ENCRYPT_KEY = os.getenv("ENCRYPT_KEY")
 VERIFICATION_TOKEN = os.getenv("VERIFICATION_TOKEN")
-
-# 事件配置
-EVENT_WEBHOOK_URL = "/event"
 
 # 回调配置
 CALLBACK_WEBHOOK_URL = "/callback"
