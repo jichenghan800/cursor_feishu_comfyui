@@ -20,11 +20,16 @@ async def handle_event(request: Request):
     # 获取请求头
     headers = dict(request.headers)
     
-    # 使用 handler 处理事件
-    resp = handler(headers, body)
-    
-    # 创建 Response 对象
-    return Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+    try:
+        # 使用 handler 处理事件
+        event = handler.event_handler(headers, body)
+        
+        # 如果事件处理成功，返回 "OK"
+        return Response(content="OK", status_code=200)
+    except Exception as e:
+        # 如果事件处理失败，返回错误信息
+        print(f"事件处理失败: {str(e)}")
+        return Response(content="Event processing failed", status_code=400)
 
 # 主程序入口
 if __name__ == "__main__":
