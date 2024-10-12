@@ -44,7 +44,7 @@ async def handle_webhook_card(request: Request):
         # 处理卡片事件
         await handle_card_event(event)
     except Exception as e:
-        pass
+        print(f"Error handling card event: {e}")
 
 @app.post("/webhook/event")
 async def webhook_event(request: Request):
