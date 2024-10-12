@@ -24,8 +24,8 @@ async def handle_event(request: Request):
     print(f"Received body: {body.decode()}")
     
     try:
-        # 使用 handler.do 方法处理事件
-        resp = handler.do(headers, body)
+        # 使用 handler.do 方法处理事件，只传递 body
+        resp = handler.do(body)
         
         # 返回处理结果
         if isinstance(resp, dict):
