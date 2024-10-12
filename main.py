@@ -24,20 +24,16 @@ async def handle_event(request: Request):
     print(f"Received body: {body.decode()}")
     
     try:
-        # 检查 handler 的类型和可用方法
-        print(f"Handler type: {type(handler)}")
-        print(f"Handler methods: {dir(handler)}")
-        
-        # 尝试使用 handler 处理事件
-        if hasattr(handler, 'handle'):
-            resp = handler.handle(headers, body)
-        elif callable(handler):
-            resp = handler(headers, body)
-        else:
-            raise AttributeError("Handler has no 'handle' method and is not callable")
+        # 使用 handler.do 方法处理事件
+        resp = handler.do(headers, body)
         
         # 返回处理结果
-        return Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+        if isinstance(resp, dict):
+            return resp
+        elif hasattr(resp, 'content') and hasattr(resp, 'status_code'):
+            return Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+        else:
+            return Response(content="OK", status_code=200)
     except Exception as e:
         # 如果事件处理失败，返回错误信息
         print(f"事件处理失败: {str(e)}")
