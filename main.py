@@ -2,6 +2,7 @@
 import asyncio  # 用于异步编程
 from fastapi import FastAPI, Request  # 用于创建Web应用和处理HTTP请求
  
+# 修改这一行，确保导入正确的处理函数
 from feishu_bot import handler  # 导入自定义的消息处理和卡片操作处理函数
 from config import feishu_client, SERVER_HOST, SERVER_PORT  # 从配置文件中导入飞书验证令牌和加密密钥
 # 以上导入确保了我们有所有必要的工具来创建一个飞书机器人服务，
@@ -16,8 +17,8 @@ async def handle_event(request: Request):
     # 从请求中获取JSON数据
     data = await request.json()
     
-    # 使用事件处理器处理事件
-    resp = handler.handle(data)
+    # 修改这一行，使用正确的方法名
+    resp = await handler.dispatch(data)
     
     # 返回处理结果
     return resp
