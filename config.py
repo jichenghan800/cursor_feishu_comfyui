@@ -8,7 +8,7 @@ APP_ID = os.getenv("APP_ID")
 APP_SECRET = os.getenv("APP_SECRET")
 
 # Webhook配置
-WEBHOOK_URL = "/webhook/event"
+WEBHOOK_URL = "/webhook/card"
 
 # ComfyUI配置
 COMFYUI_API_URL = os.getenv("COMFYUI_API_URL", "http://localhost:8188")

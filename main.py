@@ -9,10 +9,17 @@ app = FastAPI()
 # 创建 Lark 客户端
 client = Client.builder().app_id(APP_ID).app_secret(APP_SECRET).build()
 
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Server is running"}
+
 @app.post(WEBHOOK_URL)
 async def webhook(request: Request):
     body = await request.body()
     headers = dict(request.headers)
+    
+    print(f"Received headers: {headers}")
+    print(f"Received body: {body.decode()}")
     
     try:
         # 验证请求
