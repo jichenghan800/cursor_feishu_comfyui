@@ -1,7 +1,7 @@
 # 导入必要的模块
 import asyncio  # 用于异步编程
 from fastapi import FastAPI, Request, Response  # 用于创建Web应用和处理HTTP请求
-from lark_oapi import JSON  # 用于序列化JSON数据
+from lark_oapi import JSON  # 用于序列化JSON数据和解析JSON
 
 # 修改这一行，确保导入正确的处理函数
 from feishu_bot import handler  # 导入自定义的消息处理和卡片操作处理函数
@@ -24,8 +24,11 @@ async def handle_event(request: Request):
     print(f"Received body: {body.decode()}")
     
     try:
-        # 使用 handler.do 方法处理事件，只传递 body
-        resp = handler.do(body)
+        # 将 body 解析为 JSON
+        event = JSON.unmarshal(body)
+        
+        # 使用 handler 处理事件
+        resp = handler(headers, event)
         
         # 返回处理结果
         if isinstance(resp, dict):
