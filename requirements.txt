@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-lark-oapi
-aiohttp
-python-multipart
 python-dotenv
+aiohttp
+lark-oapi
+

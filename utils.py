@@ -1,17 +1,15 @@
+import aiohttp
 from lark_oapi import Client
-from lark_oapi.api.im.v1 import *
-from config import APP_ID, APP_SECRET
+from config import feishu_client
 
-client = Client.builder().app_id(APP_ID).app_secret(APP_SECRET).build()
+async def upload_image_to_feishu(image_path: str) -> str:
+    with open(image_path, "rb") as f:
+        image_data = f.read()
+    
+    response = await feishu_client.im.v1.image.create({
+        "image_type": "message",
+        "image": image_data
+    })
+    
+    return response.data.image_key
 
-async def upload_image_to_feishu(client: Client, image_path):
-    with open(image_path, 'rb') as f:
-        request = CreateImageRequest.builder() \
-            .request_body(CreateImageRequestBody.builder()
-                .image_type("message")
-                .image(f)
-                .build()) \
-            .build()
-        
-        response = await client.im.v1.image.create(request)
-        return response.image_key

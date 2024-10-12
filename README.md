@@ -25,7 +25,7 @@
 
 ## 重要链接
 
-- 消息卡片请求网址: http://124.127.212.106:9000/webhook/card
+- 消息卡片请求网址: http://x.x.x.x:9000/webhook/card
 - 飞书服务端SDK文档: https://open.feishu.cn/document/server-docs/server-side-sdk
 - 飞书API参考: https://github.com/larksuite/oapi-sdk-python/tree/v2_main/samples/api
 - ComfyUI API调用示例: https://github.com/comfyanonymous/ComfyUI/tree/master/script_examples
