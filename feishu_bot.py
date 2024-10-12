@@ -12,19 +12,30 @@ client = lark.Client.builder() \
     .build()
 
 def handler(headers, body):
-    # 验证请求
+    print("Handler function called")
+    print(f"Headers: {headers}")
+    print(f"Body: {body}")
+
     if not verify_request(headers, body):
+        print("Request verification failed")
         return {"status": "fail", "message": "Invalid request"}, 401
 
-    # 解析事件
-    event = json.loads(body)
+    try:
+        event = json.loads(body)
+    except json.JSONDecodeError:
+        print("Failed to parse body as JSON")
+        return {"status": "fail", "message": "Invalid JSON"}, 400
 
-    # 处理事件
+    print(f"Parsed event: {event}")
+
     if event.get("type") == "url_verification":
+        print("Handling URL verification")
         return handle_verification(event)
     elif event.get("type") == "event_callback":
+        print("Handling event callback")
         return handle_event(event)
 
+    print("Unhandled event type")
     return {"status": "success"}, 200
 
 def verify_request(headers, body):
@@ -44,20 +55,32 @@ def handle_event(event):
     return {"status": "success"}, 200
 
 def handle_message(event):
+    print("Handling message event")
     message = event.get("event", {}).get("message", {})
     chat_id = message.get("chat_id")
     content = json.loads(message.get("content", "{}")).get("text", "")
 
-    # 发送等待消息
+    print(f"Chat ID: {chat_id}")
+    print(f"Message content: {content}")
+
     send_message(chat_id, "正在生成图片，请稍候...")
 
-    # 调用 ComfyUI API 生成图片
-    image_path = generate_image(content)
+    try:
+        image_path = generate_image(content)
+        print(f"Generated image path: {image_path}")
+    except Exception as e:
+        print(f"Error generating image: {str(e)}")
+        send_message(chat_id, "生成图片时出错，请稍后重试。")
+        return {"status": "fail", "message": "Image generation failed"}, 500
 
-    # 上传图片到飞书
-    image_key = upload_image_to_feishu(image_path)
+    try:
+        image_key = upload_image_to_feishu(image_path)
+        print(f"Uploaded image key: {image_key}")
+    except Exception as e:
+        print(f"Error uploading image: {str(e)}")
+        send_message(chat_id, "上传图片时出错，请稍后重试。")
+        return {"status": "fail", "message": "Image upload failed"}, 500
 
-    # 发送图片消息
     send_image_message(chat_id, image_key, content)
 
     return {"status": "success"}, 200
