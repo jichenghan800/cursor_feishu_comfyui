@@ -3,3 +3,4 @@ uvicorn
 lark-oapi
 aiohttp
 python-multipart
+python-dotenv
