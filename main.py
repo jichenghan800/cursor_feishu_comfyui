@@ -13,15 +13,19 @@ async def webhook_event(request: Request):
     body = await request.body()
     headers = dict(request.headers)
     
-    # 使用 client.event.verify 方法来验证和解析事件
-    event = await client.event.verify(headers, body)
-    
-    if event.header.event_type == "im.message.receive_v1":
-        await handle_message(client, event)
-    elif event.header.event_type == "im.message.action":
-        await handle_card_action(client, event)
-    
-    return Response(content="", status_code=200)
+    try:
+        # 使用 client.event.verify 方法来验证和解析事件
+        event = await client.event.verify(headers, body)
+        
+        if event.header.event_type == "im.message.receive_v1":
+            await handle_message(client, event)
+        elif event.header.event_type == "im.message.action":
+            await handle_card_action(client, event)
+        
+        return Response(content="", status_code=200)
+    except Exception as e:
+        print(f"Error processing event: {e}")
+        return Response(content="Error", status_code=400)
 
 @app.get("/")
 async def root():
