@@ -1,41 +1,38 @@
 import json
-import lark_oapi as lark
+import logging
+from lark_oapi import Client
 from lark_oapi.api.im.v1 import *
 from config import FEISHU_APP_ID, FEISHU_APP_SECRET, FEISHU_VERIFICATION_TOKEN, FEISHU_ENCRYPT_KEY
 from comfyui_api import generate_image
 from utils import upload_image_to_feishu
 
+# 设置日志级别
+logging.basicConfig(level=logging.DEBUG)
+
 # 创建 lark_oapi_client 实例
-client = lark.Client.builder() \
+client = Client.builder() \
     .app_id(FEISHU_APP_ID) \
     .app_secret(FEISHU_APP_SECRET) \
     .build()
 
 def handler(headers, body):
-    print("Handler function called")
-    print(f"Headers: {headers}")
-    print(f"Body: {body}")
+    logging.debug("Handler function called")
+    logging.debug(f"Headers: {headers}")
+    logging.debug(f"Body: {body}")
 
+    # 验证请求
     if not verify_request(headers, body):
-        print("Request verification failed")
         return {"status": "fail", "message": "Invalid request"}, 401
 
-    try:
-        event = json.loads(body)
-    except json.JSONDecodeError:
-        print("Failed to parse body as JSON")
-        return {"status": "fail", "message": "Invalid JSON"}, 400
+    # 解析事件
+    event = json.loads(body)
 
-    print(f"Parsed event: {event}")
-
+    # 处理事件
     if event.get("type") == "url_verification":
-        print("Handling URL verification")
         return handle_verification(event)
     elif event.get("type") == "event_callback":
-        print("Handling event callback")
         return handle_event(event)
 
-    print("Unhandled event type")
     return {"status": "success"}, 200
 
 def verify_request(headers, body):
@@ -55,29 +52,28 @@ def handle_event(event):
     return {"status": "success"}, 200
 
 def handle_message(event):
-    print("Handling message event")
     message = event.get("event", {}).get("message", {})
     chat_id = message.get("chat_id")
     content = json.loads(message.get("content", "{}")).get("text", "")
 
-    print(f"Chat ID: {chat_id}")
-    print(f"Message content: {content}")
+    logging.info(f"Chat ID: {chat_id}")
+    logging.info(f"Message content: {content}")
 
     send_message(chat_id, "正在生成图片，请稍候...")
 
     try:
         image_path = generate_image(content)
-        print(f"Generated image path: {image_path}")
+        logging.info(f"Generated image path: {image_path}")
     except Exception as e:
-        print(f"Error generating image: {str(e)}")
+        logging.error(f"Error generating image: {str(e)}")
         send_message(chat_id, "生成图片时出错，请稍后重试。")
         return {"status": "fail", "message": "Image generation failed"}, 500
 
     try:
         image_key = upload_image_to_feishu(image_path)
-        print(f"Uploaded image key: {image_key}")
+        logging.info(f"Uploaded image key: {image_key}")
     except Exception as e:
-        print(f"Error uploading image: {str(e)}")
+        logging.error(f"Error uploading image: {str(e)}")
         send_message(chat_id, "上传图片时出错，请稍后重试。")
         return {"status": "fail", "message": "Image upload failed"}, 500
 
@@ -90,12 +86,12 @@ def send_message(chat_id, content):
         .receive_id_type("chat_id") \
         .receive_id(chat_id) \
         .msg_type("text") \
-        .content(json.dumps({"text": content})) \
+        .content('{"text":"' + content + '"}') \
         .build()
     
     resp = client.im.v1.message.create(req)
     if not resp.success():
-        print(f"发送消息失败: {resp.msg}")
+        logging.error(f"发送消息失败: {resp.msg}")
 
 def send_image_message(chat_id, image_key, prompt):
     card_content = {
@@ -129,4 +125,4 @@ def send_image_message(chat_id, image_key, prompt):
     
     resp = client.im.v1.message.create(req)
     if not resp.success():
-        print(f"发送图片消息失败: {resp.msg}")
+        logging.error(f"发送图片消息失败: {resp.msg}")

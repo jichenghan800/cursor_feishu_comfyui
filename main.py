@@ -33,7 +33,8 @@ async def handle_event(request: Request):
         # 如果 resp 是一个元组，说明它包含状态码
         if isinstance(resp, tuple):
             print(f"Returning tuple response: {resp}")
-            return Response(content=resp[0], status_code=resp[1])
+            content = json.dumps(resp[0])  # 将字典转换为 JSON 字符串
+            return Response(content=content, status_code=resp[1], media_type="application/json")
         else:
             print(f"Returning non-tuple response: {resp}")
             return resp
@@ -41,7 +42,7 @@ async def handle_event(request: Request):
         print(f"事件处理失败: {str(e)}")
         print(f"Exception type: {type(e)}")
         print(f"Exception traceback: {traceback.format_exc()}")
-        return Response(content=json.dumps({"status": "fail", "message": "Event processing failed"}), status_code=400)
+        return Response(content=json.dumps({"status": "fail", "message": "Event processing failed"}), status_code=400, media_type="application/json")
 
 # 主程序入口
 if __name__ == "__main__":
