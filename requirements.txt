@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+lark-oapi
+aiohttp
+python-multipart
