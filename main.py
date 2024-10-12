@@ -24,8 +24,8 @@ async def handle_event(request: Request):
     print(f"Received body: {body.decode()}")
 
     try:
-        # 使用 handler 处理事件
-        resp = handler(headers, body)
+        # 使用 handler.handle() 方法处理事件
+        resp = handler.handle(headers, body)
         return resp
     except Exception as e:
         # 如果事件处理失败，打印错误信息并返回 400 状态码
