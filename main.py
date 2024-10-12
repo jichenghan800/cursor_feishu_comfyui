@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Response
 from lark_oapi import Client
+from lark_oapi.api.event.v1 import *
 from feishu_bot import handle_message, handle_card_action
 from config import APP_ID, APP_SECRET, VERIFICATION_TOKEN, ENCRYPT_KEY, SERVER_HOST, SERVER_PORT
 
@@ -14,12 +15,12 @@ async def webhook_event(request: Request):
     headers = dict(request.headers)
     
     try:
-        # 使用 client.event.verify 方法来验证和解析事件
-        event = await client.event.verify(headers, body)
+        # 使用 SDK 提供的方法来验证和解析事件
+        event = await client.event.v1.event.verify(headers, body)
         
-        if event.header.event_type == "im.message.receive_v1":
+        if isinstance(event, ImMessageReceiveV1):
             await handle_message(client, event)
-        elif event.header.event_type == "im.message.action":
+        elif isinstance(event, ImMessageActionV1):
             await handle_card_action(client, event)
         
         return Response(content="", status_code=200)
