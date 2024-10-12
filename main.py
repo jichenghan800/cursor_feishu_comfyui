@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, Response
 from feishu_bot import handle_card_event, handle_event, handle_callback
 from config import WEBHOOK_URL, APP_ID, APP_SECRET, VERIFICATION_TOKEN, ENCRYPT_KEY, SERVER_HOST, SERVER_PORT
 from lark_oapi import Client
@@ -10,51 +10,38 @@ app = FastAPI()
 client = Client.builder().app_id(APP_ID).app_secret(APP_SECRET).build()
 
 @app.get("/")
-async def root():
+async def ping():
     return {"status": "ok", "message": "Server is running"}
 
-@app.post("/webhook/event")
-async def handle_webhook_event(request: Request):
-    # 获取请求头和请求体
-    headers = dict(request.headers)
-    body = await request.body()
+@app.post("/webhook/card")
+async def webhook_card(request: Request):
+    # 立即返回 200 状态码
+    asyncio.create_task(handle_webhook_card(request))
+    return Response(status_code=200)
 
-    # 打印接收到的请求信息（用于调试）
-    print(f"Received headers: {headers}")
-    print(f"Received body: {body.decode()}")
-
-    # 处理事件回调
+async def handle_webhook_card(request: Request):
     try:
-        # 使用 client 来验证和解析事件
+        body = await request.body()
+        headers = dict(request.headers)
         event = await client.event.verify(headers, body)
-        print(f"Parsed event: {event}")
-
-        # 根据事件类型处理不同的事件
-        if event.header.event_type == "im.message.receive_v1":
-            # 处理接收消息事件
-            await handle_card_event(event.event)
-        else:
-            await handle_event(event)
-
-        return {"status": "success"}
+        # 处理卡片事件
+        await handle_card_event(event)
     except Exception as e:
-        print(f"Error processing event: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        print(f"Error handling card event: {e}")
 
-@app.post("/callback")
-async def callback_webhook(request: Request):
+@app.post("/webhook/event")
+async def webhook_event(request: Request):
     body = await request.body()
     headers = dict(request.headers)
     
     try:
-        # 使用 client 来验证和解析事件
         event = await client.event.verify(headers, body)
-        
-        response = await handle_callback(event)
-        return response
+        # 处理事件
+        await handle_event(event)
+        return {"message": "OK"}
     except Exception as e:
-        print(f"Error processing callback: {e}")
-        raise HTTPException(status_code=400, detail="Invalid callback")
+        print(f"Error processing event: {e}")
+        return Response(status_code=400, content=str(e))
 
 if __name__ == "__main__":
     import uvicorn
