@@ -1,6 +1,6 @@
 import json
 import logging
-from lark_oapi import Client, EventDispatcher
+from lark_oapi import Client
 from lark_oapi.api.im.v1 import *
 from config import FEISHU_APP_ID, FEISHU_APP_SECRET, FEISHU_VERIFICATION_TOKEN, FEISHU_ENCRYPT_KEY
 from comfyui_api import generate_image
@@ -15,35 +15,36 @@ client = Client.builder() \
     .app_secret(FEISHU_APP_SECRET) \
     .build()
 
-# 创建事件分发器
-event_dispatcher = EventDispatcher(FEISHU_VERIFICATION_TOKEN, FEISHU_ENCRYPT_KEY)
-
 def handler(headers, body):
     logging.debug("Handler function called")
     logging.debug(f"Headers: {headers}")
     logging.debug(f"Body: {body}")
 
-    # 使用事件分发器处理事件
-    event = event_dispatcher.parse(headers, body)
+    # 解析事件
+    event = json.loads(body)
 
-    if isinstance(event, dict):
-        # URL验证
-        if event.get("type") == "url_verification":
-            return handle_verification(event)
-    elif hasattr(event, 'event'):
-        # 消息事件
-        if event.event.message:
-            return handle_message(event)
+    # 处理事件
+    if event.get("type") == "url_verification":
+        return handle_verification(event)
+    elif event.get("type") == "event_callback":
+        return handle_event(event)
 
     return {"status": "success"}, 200
 
 def handle_verification(event):
     return {"challenge": event.get("challenge")}
 
+def handle_event(event):
+    event_type = event.get("event", {}).get("type")
+    if event_type == "message":
+        return handle_message(event)
+    # 可以添加其他事件类型的处理
+    return {"status": "success"}, 200
+
 def handle_message(event):
-    message = event.event.message
-    chat_id = message.chat_id
-    content = json.loads(message.content).get("text", "")
+    message = event.get("event", {}).get("message", {})
+    chat_id = message.get("chat_id")
+    content = json.loads(message.get("content", "{}")).get("text", "")
 
     logging.info(f"Chat ID: {chat_id}")
     logging.info(f"Message content: {content}")
