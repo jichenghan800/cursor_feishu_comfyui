@@ -3,7 +3,7 @@ from lark_oapi import Client
 from lark_oapi.api.event.v1 import *
 from config import APP_ID, APP_SECRET, VERIFICATION_TOKEN, ENCRYPT_KEY, SERVER_HOST, SERVER_PORT
 import json
-
+ 
 
 app = FastAPI()
 
@@ -19,18 +19,20 @@ async def webhook_event(request: Request):
         # 使用 SDK 提供的方法来验证和解析事件
         event = await client.event.v1.event.verify(headers, body)
         
- 
+        if isinstance(event, event):
+            # 获取发送者的 open_id
+            open_id = event.sender.sender_id.open_id
             
             # 创建回复消息
-        request = client.im.v1.message.create_req() \
-            .receive_id_type("open_id") \
-            .receive_id(open_id) \
-            .msg_type("text") \
-            .content(json.dumps({"text": "已收到"})) \
-            .build()
-        
+            request = client.im.v1.message.create_req() \
+                .receive_id_type("open_id") \
+                .receive_id(open_id) \
+                .msg_type("text") \
+                .content(json.dumps({"text": "已收到"})) \
+                .build()
+            
             # 发送回复消息
-        await client.im.v1.message.create(request)
+            await client.im.v1.message.create(request)
         
         return Response(content="", status_code=200)
     except Exception as e:
